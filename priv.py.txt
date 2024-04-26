@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+
+def check_suid_binaries():
+    print("[*] Checking SUID binaries...")
+    suid_binaries = subprocess.check_output(["find", "/", "-perm", "-4000", "-type", "f"]).decode("utf-8").split("\n")
+    vulnerable_suids = [binary for binary in suid_binaries if not os.path.realpath(binary).startswith("/usr")]
+    if vulnerable_suids:
+        print("[!] Potentially vulnerable SUID binaries found:")
+        for binary in vulnerable_suids:
+            print("    -", binary)
+    else:
+        print("[+] No potentially vulnerable SUID binaries found.")
+
+def check_writable_files():
+    print("\n[*] Checking writable files...")
+    writable_files = subprocess.check_output(["find", "/", "-writable", "-type", "f"]).decode("utf-8").split("\n")
+    if writable_files:
+        print("[!] Potentially writable files found:")
+        for file in writable_files:
+            print("    -", file)
+    else:
+        print("[+] No potentially writable files found.")
+
+def check_installed_packages():
+    print("\n[*] Checking installed packages for vulnerabilities...")
+    package_manager = input("[?] Enter your package manager (e.g., apt, yum, pacman): ").strip().lower()
+    if package_manager in ["apt", "yum", "pacman"]:
+        vulnerable_packages = []
+        try:
+            if package_manager == "apt":
+                vulnerable_packages = subprocess.check_output(["apt", "list", "--installed"]).decode("utf-8").split("\n")
+            elif package_manager == "yum":
+                vulnerable_packages = subprocess.check_output(["yum", "list", "installed"]).decode("utf-8").split("\n")
+            elif package_manager == "pacman":
+                vulnerable_packages = subprocess.check_output(["pacman", "-Q"]).decode("utf-8").split("\n")
+        except subprocess.CalledProcessError:
+            pass
+
+        if vulnerable_packages:
+            print("[!] Potentially vulnerable packages found:")
+            for package in vulnerable_packages:
+                print("    -", package)
+        else:
+            print("[+] No potentially vulnerable packages found.")
+    else:
+        print("[!] Unsupported package manager.")
+
+def main():
+    print("[*] Starting privilege escalation vulnerability scan...\n")
+    check_suid_binaries()
+    check_writable_files()
+    check_installed_packages()
+    print("\n[*] Scan completed.")
+
+if __name__ == "__main__":
+    main()
