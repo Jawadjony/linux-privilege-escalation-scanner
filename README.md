@@ -12,3 +12,4 @@ This tool scans a Linux system for potential privilege escalation vulnerabilitie
 
 ## Usage:
 1. Clone the repository:
+2. ./privilege_escalation_scan.py
